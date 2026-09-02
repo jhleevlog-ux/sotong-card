@@ -1,864 +1,923 @@
-<!DOCTYPE html>
-<html lang="ko">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>소통복지부 법인카드 불출대장</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- QRCode.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Canvas Confetti -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <style>
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-        .pulse-emerald {
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            animation: pulse-emerald 2s infinite;
-        }
-        @keyframes pulse-emerald {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .pulse-amber {
-            box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
-            animation: pulse-amber 2s infinite;
-        }
-        @keyframes pulse-amber {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
-            70% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-        }
-    </style>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.6">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px '.AppleSystemUIFontMonospaced'}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px '.AppleSystemUIFontMonospaced'; min-height: 15.0px}
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-12">
-
-    <!-- Top Header -->
-    <header class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-800 text-white shadow-md">
-        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-3">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl font-bold backdrop-blur-sm border border-white/20">
-                    <i class="fa-solid fa-credit-card text-amber-300"></i>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 text-xs font-semibold bg-blue-500/30 text-blue-100 rounded-full border border-blue-300/30">소통복지부</span>
-                        <span class="text-xs text-blue-200"><i class="fa-solid fa-location-dot mr-1"></i>2층 서랍 보관</span>
-                    </div>
-                    <h1 class="text-xl font-bold tracking-tight">법인카드 불출대장</h1>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-2">
-                <button id="btnOpenQrModal" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition flex items-center gap-1.5 border border-white/20">
-                    <i class="fa-solid fa-qrcode text-amber-300"></i>
-                    <span>부착용 QR 생성</span>
-                </button>
-                <button id="btnResetData" class="px-2.5 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg text-xs transition" title="데이터 초기화/샘플">
-                    <i class="fa-solid fa-rotate-right"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-5xl mx-auto px-4 mt-6 flex-grow w-full space-y-6">
-
-        <!-- Card Live Status Banner -->
-        <section id="cardStatusContainer" class="rounded-2xl p-6 transition-all duration-300 glass-card shadow-sm border">
-            <!-- Dynamic Content Injected via JS -->
-        </section>
-
-        <!-- Summary Cards & Quick Filter -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-list-check"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">이번달 총 불출</p>
-                    <p id="statTotalCount" class="text-lg font-bold text-slate-800">0회</p>
-                </div>
-            </div>
-            
-            <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-hand-holding-hand"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">현재 사용 상태</p>
-                    <p id="statCurrentState" class="text-lg font-bold text-emerald-600">서랍 보관중</p>
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">반납 지연 건수</p>
-                    <p id="statOverdueCount" class="text-lg font-bold text-slate-800">0건</p>
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-user-clock"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-slate-500 font-medium">최근 이용자</p>
-                    <p id="statLastUser" class="text-lg font-bold text-slate-800">-</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- History Table Section -->
-        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-book text-blue-600"></i>
-                        법인카드 불출 및 반납 히스토리
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">소통복지부 법인카드 사용 전체 내역입니다.</p>
-                </div>
-
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <div class="relative flex-grow sm:flex-grow-0">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="searchInput" placeholder="이름/목적 검색..." class="pl-8 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48 bg-slate-50">
-                    </div>
-                    <button id="btnExportCsv" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap">
-                        <i class="fa-solid fa-file-excel text-emerald-600"></i>
-                        <span>엑셀 다운로드</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Table -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
-                        <tr>
-                            <th class="px-4 py-3">상태</th>
-                            <th class="px-4 py-3">대출자</th>
-                            <th class="px-4 py-3">불출 일시</th>
-                            <th class="px-4 py-3">반납 예정 시간</th>
-                            <th class="px-4 py-3">실제 반납 일시</th>
-                            <th class="px-4 py-3">사용 목적</th>
-                            <th class="px-4 py-3 text-right">관리</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody" class="divide-y divide-slate-100">
-                        <!-- Dynamic Rows -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden p-8 text-center">
-                <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-2">
-                    <i class="fa-regular fa-folder-open text-xl"></i>
-                </div>
-                <p class="text-sm font-medium text-slate-600">기록된 불출 내역이 없습니다.</p>
-                <p class="text-xs text-slate-400 mt-1">상단의 불출 버튼을 눌러 첫 사용 등록을 해보세요.</p>
-            </div>
-        </section>
-
-    </main>
-
-
-    <!-- Checkout Modal (불출 등록 모달) -->
-    <div id="checkoutModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-100 transition-all transform scale-100">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-hand-holding-hand text-amber-300 text-lg"></i>
-                    <h3 class="font-bold text-lg">법인카드 불출 (대여)</h3>
-                </div>
-                <button type="button" class="btnCloseCheckoutModal text-white/80 hover:text-white text-xl">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <form id="checkoutForm" class="p-6 space-y-4">
-                <!-- User Name -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">대출자 성명 <span class="text-rose-500">*</span></label>
-                    <div class="relative">
-                        <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="inputBorrowerName" required placeholder="예: 김길동" class="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 font-medium">
-                    </div>
-                </div>
-
-                <!-- Checkout Time (Auto) -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">불출 일시 (현재 시간)</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-calendar-check absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="displayCheckoutTime" readonly class="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-100 text-slate-600 font-mono font-medium">
-                    </div>
-                </div>
-
-                <!-- Expected Return Time -->
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-semibold text-slate-700 uppercase">반납 예정 시간 <span class="text-rose-500">*</span></label>
-                        <span class="text-xs text-blue-600 font-medium">빠른 선택 가능</span>
-                    </div>
-                    
-                    <!-- Quick Preset Buttons -->
-                    <div class="grid grid-cols-4 gap-1.5 mb-2">
-                        <button type="button" class="btnPresetTime py-1 px-2 text-xs border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition" data-hours="1">+1시간</button>
-                        <button type="button" class="btnPresetTime py-1 px-2 text-xs border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition" data-hours="2">+2시간</button>
-                        <button type="button" class="btnPresetTime py-1 px-2 text-xs border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition" data-hours="3">+3시간</button>
-                        <button type="button" id="btnPresetWorkEnd" class="py-1 px-2 text-xs border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-medium transition">18:00 퇴근전</button>
-                    </div>
-
-                    <div class="relative">
-                        <i class="fa-solid fa-clock absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="datetime-local" id="inputExpectedReturnTime" required class="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 font-medium">
-                    </div>
-                </div>
-
-                <!-- Purpose -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">사용 목적</label>
-                    <select id="selectPurpose" class="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 font-medium text-slate-700">
-                        <option value="부서 업무 회의 / 식비">부서 업무 회의 / 식비</option>
-                        <option value="부서 소모품 구입">부서 소모품 및 사무용품 구입</option>
-                        <option value="외부 기관 방문 / 접대비">외부 기관 방문 / 접대비</option>
-                        <option value="행사 및 복지 업무 지원">행사 및 복지 업무 지원</option>
-                        <option value="기타 업무용 결제">기타 업무용 결제</option>
-                    </select>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="pt-3 flex gap-2">
-                    <button type="button" class="btnCloseCheckoutModal flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-50 text-sm transition">취소</button>
-                    <button type="submit" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-md shadow-blue-500/20 text-sm transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-check"></i>
-                        <span>불출 완료</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Return Confirm Modal (반납 확인 모달) -->
-    <div id="returnModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-100">
-            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-white flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-box-archive text-emerald-200 text-lg"></i>
-                    <h3 class="font-bold text-lg">법인카드 반납</h3>
-                </div>
-                <button type="button" class="btnCloseReturnModal text-white/80 hover:text-white text-xl">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="p-6 space-y-4">
-                <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100 text-emerald-900 space-y-1">
-                    <p class="text-xs text-emerald-600 font-semibold uppercase">현재 반납 대상</p>
-                    <p class="text-lg font-bold" id="returnModalBorrowerName">-</p>
-                    <p class="text-xs text-emerald-700" id="returnModalTimeInfo">불출 일시: -</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">실제 반납 일시</label>
-                    <input type="text" id="displayReturnTime" readonly class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-100 text-slate-700 font-mono font-medium">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">비고 / 영수증 제출 여부 (선택)</label>
-                    <input type="text" id="inputReturnNotes" placeholder="예: 영수증 서랍함 제출 완료" class="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50">
-                </div>
-
-                <div class="pt-2 flex gap-2">
-                    <button type="button" class="btnCloseReturnModal flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-50 text-sm transition">취소</button>
-                    <button type="button" id="btnConfirmReturn" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-md shadow-emerald-500/20 text-sm transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-arrow-down-left-and-up-right-to-center"></i>
-                        <span>반납 완료 (서랍에 넣음)</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- QR Code Generator Modal -->
-    <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100">
-            <div class="p-5 text-center border-b border-slate-100">
-                <h3 class="font-bold text-slate-800 text-lg">소통복지부 법인카드 QR</h3>
-                <p class="text-xs text-slate-500 mt-1">이 QR코드를 인쇄하여 카드 보관 서랍에 붙여두세요.</p>
-            </div>
-
-            <div class="p-6 flex flex-col items-center justify-center bg-slate-50">
-                <div id="qrcode" class="p-4 bg-white rounded-xl shadow-md border border-slate-200"></div>
-                <p class="text-xs text-slate-400 mt-3 font-mono text-center break-all px-4" id="qrUrlText"></p>
-            </div>
-
-            <div class="p-4 bg-white border-t border-slate-100 flex gap-2">
-                <button type="button" id="btnPrintQr" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-print"></i>
-                    <span>QR 인쇄 / 저장</span>
-                </button>
-                <button type="button" class="btnCloseQrModal px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">닫기</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const STORAGE_KEY = 'SOTONG_CARD_LOGS_V1';
-
-        // State variables
-        let logs = [];
-        let currentCheckoutItem = null;
-
-        // DOM Elements
-        const cardStatusContainer = document.getElementById('cardStatusContainer');
-        const historyTableBody = document.getElementById('historyTableBody');
-        const emptyState = document.getElementById('emptyState');
-        const searchInput = document.getElementById('searchInput');
-
-        // Modal Elements
-        const checkoutModal = document.getElementById('checkoutModal');
-        const returnModal = document.getElementById('returnModal');
-        const qrModal = document.getElementById('qrModal');
-
-        // Form Elements
-        const checkoutForm = document.getElementById('checkoutForm');
-        const inputBorrowerName = document.getElementById('inputBorrowerName');
-        const displayCheckoutTime = document.getElementById('displayCheckoutTime');
-        const inputExpectedReturnTime = document.getElementById('inputExpectedReturnTime');
-        const selectPurpose = document.getElementById('selectPurpose');
-
-        const returnModalBorrowerName = document.getElementById('returnModalBorrowerName');
-        const returnModalTimeInfo = document.getElementById('returnModalTimeInfo');
-        const displayReturnTime = document.getElementById('displayReturnTime');
-        const inputReturnNotes = document.getElementById('inputReturnNotes');
-
-        function formatDate(dateObj) {
-            const date = new Date(dateObj);
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            const hh = String(date.getHours()).padStart(2, '0');
-            const mi = String(date.getMinutes()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
-        }
-
-        function formatTimeOnly(dateObj) {
-            const date = new Date(dateObj);
-            const hh = String(date.getHours()).padStart(2, '0');
-            const mi = String(date.getMinutes()).padStart(2, '0');
-            return `${hh}:${mi}`;
-        }
-
-        function toDatetimeLocalValue(dateObj) {
-            const date = new Date(dateObj);
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            const hh = String(date.getHours()).padStart(2, '0');
-            const mi = String(date.getMinutes()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
-        }
-
-        function loadData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try {
-                    logs = JSON.parse(saved);
-                } catch (e) {
-                    logs = [];
-                }
-            } else {
-                // Initial sample data if completely empty
-                const now = new Date();
-                const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-                const yesterdayEnd = new Date(yesterday.getTime() + 2 * 60 * 60 * 1000);
-
-                logs = [
-                    {
-                        id: 'sample-1',
-                        borrower: '이소통',
-                        checkoutTime: formatDate(yesterday),
-                        expectedReturnTime: formatDate(yesterdayEnd),
-                        actualReturnTime: formatDate(yesterdayEnd),
-                        purpose: '부서 소모품 및 사무용품 구입',
-                        status: 'RETURNED', // 'CHECKED_OUT' or 'RETURNED'
-                        notes: '영수증 제출 완료'
-                    }
-                ];
-                saveData();
-            }
-
-            // Check active checkout
-            currentCheckoutItem = logs.find(item => item.status === 'CHECKED_OUT') || null;
-            render();
-        }
-
-        function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
-        }
-
-        function renderCardStatus() {
-            if (!currentCheckoutItem) {
-                // Card in drawer
-                cardStatusContainer.className = "rounded-2xl p-6 transition-all duration-300 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-white border border-emerald-200/80 shadow-sm";
-                cardStatusContainer.innerHTML = `
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div class="flex items-center space-x-4 w-full md:w-auto">
-                            <div class="w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/30 flex-shrink-0 pulse-emerald">
-                                <i class="fa-solid fa-box-archive"></i>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                                        <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        대여 가능
-                                    </span>
-                                    <span class="text-xs text-slate-500">서랍 보관 중</span>
-                                </div>
-                                <h2 class="text-2xl font-bold text-slate-800 mt-1">소통복지부 법인카드</h2>
-                                <p class="text-sm text-slate-500 mt-0.5">카드가 서랍에 있습니다. 필요시 불출을 진행하세요.</p>
-                            </div>
-                        </div>
-
-                        <div class="w-full md:w-auto flex flex-col sm:flex-row gap-2">
-                            <button id="btnStartCheckout" class="w-full sm:w-auto px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-600/25 transition-all transform active:scale-95 flex items-center justify-center gap-2 text-base">
-                                <i class="fa-solid fa-hand-holding-hand"></i>
-                                <span>카드 불출하기 (대여)</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('btnStartCheckout').addEventListener('click', openCheckoutModal);
-
-            } else {
-                // Card currently checked out
-                const isOverdue = new Date() > new Date(currentCheckoutItem.expectedReturnTime);
-
-                cardStatusContainer.className = isOverdue 
-                    ? "rounded-2xl p-6 transition-all duration-300 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-white border border-rose-200 shadow-sm"
-                    : "rounded-2xl p-6 transition-all duration-300 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border border-amber-200 shadow-sm";
-
-                cardStatusContainer.innerHTML = `
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div class="flex items-center space-x-4 w-full md:w-auto">
-                            <div class="w-16 h-16 rounded-2xl ${isOverdue ? 'bg-rose-500 shadow-rose-500/30' : 'bg-amber-500 shadow-amber-500/30'} text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0 ${isOverdue ? '' : 'pulse-amber'}">
-                                <i class="fa-solid fa-credit-card"></i>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${isOverdue ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}">
-                                        <span class="w-2 h-2 mr-1.5 rounded-full ${isOverdue ? 'bg-rose-500' : 'bg-amber-500'} animate-ping"></span>
-                                        ${isOverdue ? '반납 지연중!' : '현재 대여 사용 중'}
-                                    </span>
-                                    <span class="text-xs text-slate-500">대출자: <strong class="text-slate-800 font-bold">${currentCheckoutItem.borrower}</strong></span>
-                                </div>
-                                <h2 class="text-2xl font-bold text-slate-800 mt-1">${currentCheckoutItem.borrower} 님이 사용 중</h2>
-                                <p class="text-sm text-slate-600 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
-                                    <span><i class="fa-regular fa-clock text-slate-400 mr-1"></i>불출시간: ${currentCheckoutItem.checkoutTime}</span>
-                                    <span class="font-bold ${isOverdue ? 'text-rose-600' : 'text-amber-700'}"><i class="fa-solid fa-flag-checkered mr-1"></i>반납 예정: ${currentCheckoutItem.expectedReturnTime}</span>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="w-full md:w-auto flex flex-col sm:flex-row gap-2">
-                            <button id="btnStartReturn" class="w-full sm:w-auto px-6 py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold shadow-lg shadow-amber-600/25 transition-all transform active:scale-95 flex items-center justify-center gap-2 text-base">
-                                <i class="fa-solid fa-arrow-down-left-and-up-right-to-center"></i>
-                                <span>카드 반납하기</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('btnStartReturn').addEventListener('click', openReturnModal);
-            }
-        }
-
-        function renderStats() {
-            const now = new Date();
-            const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            
-            const thisMonthLogs = logs.filter(item => item.checkoutTime.startsWith(currentMonthStr));
-            document.getElementById('statTotalCount').textContent = `${thisMonthLogs.length}회`;
-
-            const statCurrentStateEl = document.getElementById('statCurrentState');
-            if (currentCheckoutItem) {
-                statCurrentStateEl.textContent = `${currentCheckoutItem.borrower} 사용중`;
-                statCurrentStateEl.className = 'text-lg font-bold text-amber-600';
-            } else {
-                statCurrentStateEl.textContent = '서랍 보관중';
-                statCurrentStateEl.className = 'text-lg font-bold text-emerald-600';
-            }
-
-            // Overdue count
-            const overdueCount = logs.filter(item => {
-                if (item.status === 'CHECKED_OUT') {
-                    return new Date() > new Date(item.expectedReturnTime);
-                }
-                return false;
-            }).length;
-
-            const statOverdueEl = document.getElementById('statOverdueCount');
-            statOverdueEl.textContent = `${overdueCount}건`;
-            statOverdueEl.className = overdueCount > 0 ? 'text-lg font-bold text-rose-600' : 'text-lg font-bold text-slate-800';
-
-            // Last User
-            const lastLog = logs[0];
-            document.getElementById('statLastUser').textContent = lastLog ? lastLog.borrower : '-';
-        }
-
-        function renderTable() {
-            const query = searchInput.value.trim().toLowerCase();
-            
-            const filteredLogs = logs.filter(item => {
-                return item.borrower.toLowerCase().includes(query) || 
-                       item.purpose.toLowerCase().includes(query) ||
-                       (item.notes && item.notes.toLowerCase().includes(query));
-            });
-
-            historyTableBody.innerHTML = '';
-
-            if (filteredLogs.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            filteredLogs.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition-colors';
-
-                const isCheckedOut = item.status === 'CHECKED_OUT';
-                const isOverdue = isCheckedOut && new Date() > new Date(item.expectedReturnTime);
-
-                let statusBadge = '';
-                if (isCheckedOut) {
-                    if (isOverdue) {
-                        statusBadge = `<span class="px-2.5 py-1 text-xs font-bold bg-rose-100 text-rose-700 rounded-full inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-rose-500"></i> 반납지연</span>`;
-                    } else {
-                        statusBadge = `<span class="px-2.5 py-1 text-xs font-bold bg-amber-100 text-amber-700 rounded-full inline-flex items-center gap-1"><i class="fa-solid fa-spinner animate-spin text-amber-500"></i> 사용중</span>`;
-                    }
-                } else {
-                    statusBadge = `<span class="px-2.5 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-full inline-flex items-center gap-1"><i class="fa-solid fa-check text-emerald-600"></i> 반납완료</span>`;
-                }
-
-                tr.innerHTML = `
-                    <td class="px-4 py-3.5 whitespace-nowrap">${statusBadge}</td>
-                    <td class="px-4 py-3.5 font-bold text-slate-800 whitespace-nowrap">${escapeHtml(item.borrower)}</td>
-                    <td class="px-4 py-3.5 font-mono text-xs text-slate-600 whitespace-nowrap">${item.checkoutTime}</td>
-                    <td class="px-4 py-3.5 font-mono text-xs font-semibold ${isOverdue ? 'text-rose-600' : 'text-slate-700'} whitespace-nowrap">${item.expectedReturnTime}</td>
-                    <td class="px-4 py-3.5 font-mono text-xs text-slate-600 whitespace-nowrap">${item.actualReturnTime || '-'}</td>
-                    <td class="px-4 py-3.5 text-xs text-slate-700 max-w-xs truncate" title="${escapeHtml(item.purpose)}">
-                        ${escapeHtml(item.purpose)}
-                        ${item.notes ? `<div class="text-[11px] text-slate-400 mt-0.5"><i class="fa-solid fa-comment-dots mr-1"></i>${escapeHtml(item.notes)}</div>` : ''}
-                    </td>
-                    <td class="px-4 py-3.5 text-right whitespace-nowrap">
-                        ${isCheckedOut ? `
-                            <button onclick="quickReturnItem('${item.id}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-semibold transition">
-                                반납하기
-                            </button>
-                        ` : `
-                            <button onclick="deleteItem('${item.id}')" class="text-slate-300 hover:text-rose-500 transition px-2 py-1" title="삭제">
-                                <i class="fa-regular fa-trash-can"></i>
-                            </button>
-                        `}
-                    </td>
-                `;
-
-                historyTableBody.appendChild(tr);
-            });
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
-        function render() {
-            renderCardStatus();
-            renderStats();
-            renderTable();
-        }
-
-        function openCheckoutModal() {
-            if (currentCheckoutItem) {
-                alert('현재 이미 카드가 대여 중입니다. 먼저 반납을 완료해 주세요.');
-                return;
-            }
-
-            const now = new Date();
-            displayCheckoutTime.value = formatDate(now);
-            inputBorrowerName.value = '';
-
-            // Default expected return time = +2 hours
-            const defaultExpected = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-            inputExpectedReturnTime.value = toDatetimeLocalValue(defaultExpected);
-
-            checkoutModal.classList.remove('hidden');
-            setTimeout(() => inputBorrowerName.focus(), 100);
-        }
-
-        function closeCheckoutModal() {
-            checkoutModal.classList.add('hidden');
-        }
-
-        function openReturnModal() {
-            if (!currentCheckoutItem) {
-                alert('현재 대여 중인 카드가 없습니다.');
-                return;
-            }
-
-            returnModalBorrowerName.textContent = `${currentCheckoutItem.borrower} 님`;
-            returnModalTimeInfo.textContent = `불출 일시: ${currentCheckoutItem.checkoutTime} (예정: ${currentCheckoutItem.expectedReturnTime})`;
-            displayReturnTime.value = formatDate(new Date());
-            inputReturnNotes.value = '';
-
-            returnModal.classList.remove('hidden');
-        }
-
-        function closeReturnModal() {
-            returnModal.classList.add('hidden');
-        }
-
-        checkoutForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const name = inputBorrowerName.value.trim();
-            if (!name) {
-                alert('대출자 이름을 입력해주세요.');
-                return;
-            }
-
-            const now = new Date();
-            const expectedVal = inputExpectedReturnTime.value;
-            let formattedExpected = '';
-
-            if (expectedVal) {
-                formattedExpected = formatDate(new Date(expectedVal));
-            } else {
-                formattedExpected = formatDate(new Date(now.getTime() + 2 * 60 * 60 * 1000));
-            }
-
-            const newItem = {
-                id: 'log-' + Date.now(),
-                borrower: name,
-                checkoutTime: formatDate(now),
-                expectedReturnTime: formattedExpected,
-                actualReturnTime: null,
-                purpose: selectPurpose.value,
-                status: 'CHECKED_OUT',
-                notes: ''
-            };
-
-            logs.unshift(newItem);
-            currentCheckoutItem = newItem;
-            saveData();
-            closeCheckoutModal();
-            render();
-
-            // Sound or visual feedback
-            confetti({
-                particleCount: 50,
-                spread: 60,
-                origin: { y: 0.7 }
-            });
-        });
-
-        document.getElementById('btnConfirmReturn').addEventListener('click', function() {
-            if (!currentCheckoutItem) return;
-
-            const now = new Date();
-            const notes = inputReturnNotes.value.trim();
-
-            currentCheckoutItem.actualReturnTime = formatDate(now);
-            currentCheckoutItem.status = 'RETURNED';
-            if (notes) {
-                currentCheckoutItem.notes = notes;
-            }
-
-            currentCheckoutItem = null;
-            saveData();
-            closeReturnModal();
-            render();
-
-            confetti({
-                particleCount: 70,
-                spread: 80,
-                origin: { y: 0.6 }
-            });
-        });
-
-        window.quickReturnItem = function(id) {
-            const item = logs.find(l => l.id === id);
-            if (item) {
-                currentCheckoutItem = item;
-                openReturnModal();
-            }
-        };
-
-        window.deleteItem = function(id) {
-            if (confirm('이 불출 기록을 삭제하시겠습니까?')) {
-                logs = logs.filter(l => l.id !== id);
-                saveData();
-                render();
-            }
-        };
-
-        document.querySelectorAll('.btnPresetTime').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const hours = parseInt(this.getAttribute('data-hours') || '1', 10);
-                const targetTime = new Date(Date.now() + hours * 60 * 60 * 1000);
-                inputExpectedReturnTime.value = toDatetimeLocalValue(targetTime);
-            });
-        });
-
-        document.getElementById('btnPresetWorkEnd').addEventListener('click', function() {
-            const target = new Date();
-            target.setHours(18, 0, 0, 0);
-            if (target < new Date()) {
-                // If it's already past 18:00, set tomorrow 18:00
-                target.setDate(target.getDate() + 1);
-            }
-            inputExpectedReturnTime.value = toDatetimeLocalValue(target);
-        });
-
-        let qrCodeObj = null;
-
-        document.getElementById('btnOpenQrModal').addEventListener('click', function() {
-            const currentUrl = window.location.href;
-            document.getElementById('qrUrlText').textContent = currentUrl;
-
-            const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = '';
-
-            qrCodeObj = new QRCode(qrContainer, {
-                text: currentUrl,
-                width: 180,
-                height: 180,
-                colorDark : "#1e293b",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
-
-            qrModal.classList.remove('hidden');
-        });
-
-        document.querySelector('.btnCloseQrModal').addEventListener('click', function() {
-            qrModal.classList.add('hidden');
-        });
-
-        document.getElementById('btnPrintQr').addEventListener('click', function() {
-            const printWindow = window.open('', '_blank');
-            const currentUrl = window.location.href;
-            const imgData = document.querySelector('#qrcode img').src;
-
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>소통복지부 법인카드 QR코드</title>
-                    <style>
-                        body { font-family: sans-serif; text-align: center; padding: 40px; }
-                        .card-box { border: 3px solid #1e293b; border-radius: 16px; padding: 30px; display: inline-block; max-width: 320px; }
-                        h2 { font-size: 22px; color: #1e293b; margin-bottom: 4px; }
-                        p { font-size: 13px; color: #64748b; margin-top: 0; }
-                        img { margin: 20px 0; border: 1px solid #e2e8f0; padding: 10px; border-radius: 12px; }
-                        .footer { font-size: 11px; color: #94a3b8; font-family: monospace; word-break: break-all; }
-                    </style>
-                </head>
-                <body>
-                    <div class="card-box">
-                        <h2>소통복지부 법인카드</h2>
-                        <p>스캔 시 즉시 불출/반납 페이지 연결</p>
-                        <img src="${imgData}" width="200" height="200" />
-                        <div class="footer">${currentUrl}</div>
-                    </div>
-                    <script>
-                        window.onload = function() { window.print(); }
-                    <\/script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        });
-
-        document.getElementById('btnExportCsv').addEventListener('click', function() {
-            if (logs.length === 0) {
-                alert('다운로드할 내역이 없습니다.');
-                return;
-            }
-
-            let csvContent = "\uFEFF"; // UTF-8 BOM for Excel Korean support
-            csvContent += "상태,대출자,불출일시,반납예정시간,실제반납일시,사용목적,비고\n";
-
-            logs.forEach(item => {
-                const statusStr = item.status === 'CHECKED_OUT' ? '사용중' : '반납완료';
-                const row = [
-                    `"${statusStr}"`,
-                    `"${item.borrower}"`,
-                    `"${item.checkoutTime}"`,
-                    `"${item.expectedReturnTime}"`,
-                    `"${item.actualReturnTime || ''}"`,
-                    `"${item.purpose}"`,
-                    `"${item.notes || ''}"`
-                ];
-                csvContent += row.join(",") + "\n";
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `소통복지부_법인카드_불출대장_${formatDate(new Date()).substring(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-
-        document.getElementById('btnResetData').addEventListener('click', function() {
-            if (confirm('불출대장 데이터를 초기화하시겠습니까? (테스트용)')) {
-                localStorage.removeItem(STORAGE_KEY);
-                loadData();
-            }
-        });
-
-        searchInput.addEventListener('input', renderTable);
-
-        // Modal Close Buttons
-        document.querySelectorAll('.btnCloseCheckoutModal').forEach(btn => {
-            btn.addEventListener('click', closeCheckoutModal);
-        });
-        document.querySelectorAll('.btnCloseReturnModal').forEach(btn => {
-            btn.addEventListener('click', closeReturnModal);
-        });
-
-        window.onload = function() {
-            loadData();
-
-            // Auto refresh time displays every minute
-            setInterval(() => {
-                if (currentCheckoutItem) {
-                    renderCardStatus();
-                    renderStats();
-                }
-            }, 60000);
-        };
-    </script>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="ko"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;소통복지부 법인카드 불출대장 (실시간 연동)&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Tailwind CSS --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Font Awesome Icons --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- QRCode.js --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Canvas Confetti --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>* { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.glass-card {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(255, 255, 255, 0.95);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>backdrop-filter: blur(12px);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid rgba(226, 232, 240, 0.8);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.pulse-emerald {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>animation: pulse-emerald 2s infinite;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>@keyframes pulse-emerald {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>70% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.pulse-amber {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>animation: pulse-amber 2s infinite;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>@keyframes pulse-amber {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>70% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-12"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Top Header --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;header class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-800 text-white shadow-md"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="max-w-5xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="flex items-center space-x-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl font-bold backdrop-blur-sm border border-white/20"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-credit-card text-amber-300"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="px-2 py-0.5 text-xs font-semibold bg-blue-500/30 text-blue-100 rounded-full border border-blue-300/30"&gt;소통복지부&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="text-xs text-blue-200"&gt;&lt;i class="fa-solid fa-location-dot mr-1"&gt;&lt;/i&gt;2층 서랍 보관&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span id="syncStatusBadge" class="px-2 py-0.5 text-xs font-semibold bg-emerald-500/30 text-emerald-200 rounded-full border border-emerald-300/30 flex items-center gap-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>실시간 연동중</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h1 class="text-xl font-bold tracking-tight"&gt;법인카드 불출대장&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button id="btnOpenQrModal" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition flex items-center gap-1.5 border border-white/20"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-qrcode text-amber-300"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;span&gt;부착용 QR 생성&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/header&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;main class="max-w-5xl mx-auto px-4 mt-6 flex-grow w-full space-y-6"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- Card Live Status Banner --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;section id="cardStatusContainer" class="rounded-2xl p-6 transition-all duration-300 glass-card shadow-sm border"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="text-center py-6 text-slate-400"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-blue-600"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;p class="text-sm font-medium"&gt;클라우드 데이터베이스 연결 중...&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- Summary Cards --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="grid grid-cols-2 md:grid-cols-4 gap-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-list-check"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-xs text-slate-500 font-medium"&gt;이번달 총 불출&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p id="statTotalCount" class="text-lg font-bold text-slate-800"&gt;0회&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-hand-holding-hand"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-xs text-slate-500 font-medium"&gt;현재 사용 상태&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p id="statCurrentState" class="text-lg font-bold text-emerald-600"&gt;서랍 보관중&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-clock-rotate-left"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-xs text-slate-500 font-medium"&gt;반납 지연 건수&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p id="statOverdueCount" class="text-lg font-bold text-slate-800"&gt;0건&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-user-clock"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-xs text-slate-500 font-medium"&gt;최근 이용자&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p id="statLastUser" class="text-lg font-bold text-slate-800"&gt;-&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- History Table Section --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h2 class="text-lg font-bold text-slate-800 flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;i class="fa-solid fa-book text-blue-600"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>법인카드 불출 및 반납 히스토리</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-xs text-slate-500 mt-0.5"&gt;실시간으로 자동 동기화되는 전 사원 공유 대장입니다.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="flex items-center gap-2 w-full sm:w-auto"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="relative flex-grow sm:flex-grow-0"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" id="searchInput" placeholder="이름/목적 검색..." class="pl-8 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48 bg-slate-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button id="btnExportCsv" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition flex items-center gap-1 whitespace-nowrap"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;i class="fa-solid fa-file-excel text-emerald-600"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span&gt;엑셀 다운로드&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;!-- Table --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="overflow-x-auto"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;table class="w-full text-left text-sm text-slate-600"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;thead class="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;tr&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;th class="px-4 py-3"&gt;상태&lt;/th&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;th class="px-4 py-3"&gt;대출자&lt;/th&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;th class="px-4 py-3"&gt;불출 일시&lt;/th&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;th class="px-4 py-3"&gt;반납 예정 시간&lt;/th&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;th class="px-4 py-3"&gt;실제 반납 일시&lt;/th&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;th class="px-4 py-3"&gt;사용 목적&lt;/th&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;th class="px-4 py-3 text-right"&gt;관리&lt;/th&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/tr&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/thead&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;tbody id="historyTableBody" class="divide-y divide-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;!-- Dynamic Rows --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/tbody&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/table&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;!-- Empty State --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div id="emptyState" class="hidden p-8 text-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-regular fa-folder-open text-xl"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;p class="text-sm font-medium text-slate-600"&gt;기록된 불출 내역이 없습니다.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;p class="text-xs text-slate-400 mt-1"&gt;상단의 불출 버튼을 눌러 첫 사용 등록을 해보세요.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/main&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Checkout Modal --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="checkoutModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-100 transition-all"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white flex justify-between items-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-hand-holding-hand text-amber-300 text-lg"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="font-bold text-lg"&gt;법인카드 불출 (대여)&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button type="button" class="btnCloseCheckoutModal text-white/80 hover:text-white text-xl"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-xmark"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;form id="checkoutForm" class="p-6 space-y-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;label class="block text-xs font-semibold text-slate-700 uppercase mb-1"&gt;대출자 성명 &lt;span class="text-rose-500"&gt;*&lt;/span&gt;&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" id="inputBorrowerName" required placeholder="예: 김길동" class="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 font-medium"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;label class="block text-xs font-semibold text-slate-700 uppercase mb-1"&gt;불출 일시 (현재 시간)&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;i class="fa-solid fa-calendar-check absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="text" id="displayCheckoutTime" readonly class="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-100 text-slate-600 font-mono font-medium"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex justify-between items-center mb-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;label class="block text-xs font-semibold text-slate-700 uppercase"&gt;반납 예정 시간 &lt;span class="text-rose-500"&gt;*&lt;/span&gt;&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="text-xs text-blue-600 font-medium"&gt;빠른 선택&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                    </span></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="grid grid-cols-4 gap-1.5 mb-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button type="button" class="btnPresetTime py-1 px-2 text-xs border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition" data-hours="1"&gt;+1시간&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button type="button" class="btnPresetTime py-1 px-2 text-xs border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition" data-hours="2"&gt;+2시간&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button type="button" class="btnPresetTime py-1 px-2 text-xs border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition" data-hours="3"&gt;+3시간&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button type="button" id="btnPresetWorkEnd" class="py-1 px-2 text-xs border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-medium transition"&gt;18:00 퇴근전&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;i class="fa-solid fa-clock absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;input type="datetime-local" id="inputExpectedReturnTime" required class="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 font-medium"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;label class="block text-xs font-semibold text-slate-700 uppercase mb-1"&gt;사용 목적&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;select id="selectPurpose" class="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 font-medium text-slate-700"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;option value="부서 업무 회의 / 식비"&gt;부서 업무 회의 / 식비&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;option value="부서 소모품 구입"&gt;부서 소모품 및 사무용품 구입&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;option value="외부 기관 방문 / 접대비"&gt;외부 기관 방문 / 접대비&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;option value="행사 및 복지 업무 지원"&gt;행사 및 복지 업무 지원&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;option value="기타 업무용 결제"&gt;기타 업무용 결제&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/select&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="pt-3 flex gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button type="button" class="btnCloseCheckoutModal flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-50 text-sm transition"&gt;취소&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button type="submit" id="btnSubmitCheckout" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-md text-sm transition flex items-center justify-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;i class="fa-solid fa-check"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span&gt;불출 등록&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/form&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Return Confirm Modal --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="returnModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-white flex justify-between items-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-box-archive text-emerald-200 text-lg"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="font-bold text-lg"&gt;법인카드 반납&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button type="button" class="btnCloseReturnModal text-white/80 hover:text-white text-xl"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-xmark"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="p-6 space-y-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100 text-emerald-900 space-y-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-xs text-emerald-600 font-semibold uppercase"&gt;현재 반납 대상&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-lg font-bold" id="returnModalBorrowerName"&gt;-&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-xs text-emerald-700" id="returnModalTimeInfo"&gt;불출 일시: -&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;label class="block text-xs font-semibold text-slate-700 uppercase mb-1"&gt;실제 반납 일시&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;input type="text" id="displayReturnTime" readonly class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-100 text-slate-700 font-mono font-medium"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;label class="block text-xs font-semibold text-slate-700 uppercase mb-1"&gt;비고 / 영수증 제출 여부 (선택)&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;input type="text" id="inputReturnNotes" placeholder="예: 영수증 서랍함 제출 완료" class="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="pt-2 flex gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button type="button" class="btnCloseReturnModal flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-50 text-sm transition"&gt;취소&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button type="button" id="btnConfirmReturn" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-md text-sm transition flex items-center justify-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;i class="fa-solid fa-arrow-down-left-and-up-right-to-center"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span&gt;반납 완료 처리&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- QR Code Generator Modal --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="p-5 text-center border-b border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;h3 class="font-bold text-slate-800 text-lg"&gt;소통복지부 법인카드 QR&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;p class="text-xs text-slate-500 mt-1"&gt;이 QR코드를 인쇄하여 카드 보관 서랍에 붙여두세요.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="p-6 flex flex-col items-center justify-center bg-slate-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div id="qrcode" class="p-4 bg-white rounded-xl shadow-md border border-slate-200"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;p class="text-xs text-slate-400 mt-3 font-mono text-center break-all px-4" id="qrUrlText"&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="p-4 bg-white border-t border-slate-100 flex gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button type="button" id="btnPrintQr" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;i class="fa-solid fa-print"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;span&gt;QR 인쇄 / 저장&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button type="button" class="btnCloseQrModal px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition"&gt;닫기&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Custom Custom Dialog / Alert Modal --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="customAlertModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="bg-white rounded-2xl max-w-xs w-full p-5 text-center shadow-2xl space-y-3 border border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto text-xl" id="customAlertIcon"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;i class="fa-solid fa-circle-info"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h4 class="font-bold text-slate-800 text-base" id="customAlertTitle"&gt;알림&lt;/h4&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;p class="text-xs text-slate-600 leading-relaxed" id="customAlertMsg"&gt;메시지 내용&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;button id="btnCustomAlertClose" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-xl transition"&gt;확인&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Custom Confirm Modal --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="customConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="bg-white rounded-2xl max-w-xs w-full p-5 text-center shadow-2xl space-y-3 border border-slate-100"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-xl"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;i class="fa-solid fa-triangle-exclamation"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h4 class="font-bold text-slate-800 text-base" id="customConfirmTitle"&gt;삭제 확인&lt;/h4&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;p class="text-xs text-slate-600 leading-relaxed" id="customConfirmMsg"&gt;정말 삭제하시겠습니까?&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="flex gap-2 pt-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button id="btnCustomConfirmCancel" class="flex-1 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50 transition"&gt;취소&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button id="btnCustomConfirmOk" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition"&gt;삭제&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Firebase Script Module --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script type="module"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";</p>
+<p class="p1"><span class="Apple-converted-space">        </span>import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";</p>
+<p class="p1"><span class="Apple-converted-space">        </span>import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Firebase Configuration Setup</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const appId = typeof __app_id !== 'undefined' ? __app_id : 'sotong-card-app';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>apiKey: "demo-api-key",</p>
+<p class="p1"><span class="Apple-converted-space">            </span>authDomain: "demo-app.firebaseapp.com",</p>
+<p class="p1"><span class="Apple-converted-space">            </span>projectId: "demo-app",</p>
+<p class="p1"><span class="Apple-converted-space">            </span>storageBucket: "demo-app.appspot.com",</p>
+<p class="p1"><span class="Apple-converted-space">            </span>messagingSenderId: "123456789",</p>
+<p class="p1"><span class="Apple-converted-space">            </span>appId: "1:123456789:web:abcdef"</p>
+<p class="p1"><span class="Apple-converted-space">        </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>const app = initializeApp(firebaseConfig);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const auth = getAuth(app);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const db = getFirestore(app);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Public Data Collection Path (Strict Rule 1)</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const collectionPath = ['artifacts', appId, 'public', 'data', 'card_logs'];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Global State</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let logs = [];</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let currentCheckoutItem = null;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let confirmCallback = null;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Custom Modals Helper Functions</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function showAlert(msg, title = "알림", iconClass = "fa-circle-info", iconBg = "bg-blue-50 text-blue-600") {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('customAlertTitle').textContent = title;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('customAlertMsg').textContent = msg;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const iconEl = document.getElementById('customAlertIcon');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>iconEl.className = `w-12 h-12 rounded-full ${iconBg} flex items-center justify-center mx-auto text-xl`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>iconEl.innerHTML = `&lt;i class="fa-solid ${iconClass}"&gt;&lt;/i&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('customAlertModal').classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('btnCustomAlertClose').onclick = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('customAlertModal').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function showConfirm(msg, title = "확인", onOk) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('customConfirmTitle').textContent = title;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('customConfirmMsg').textContent = msg;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>confirmCallback = onOk;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('customConfirmModal').classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('btnCustomConfirmCancel').onclick = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('customConfirmModal').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>confirmCallback = null;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('btnCustomConfirmOk').onclick = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('customConfirmModal').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (confirmCallback) confirmCallback();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>confirmCallback = null;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Initialize Realtime Sync</p>
+<p class="p1"><span class="Apple-converted-space">        </span>async function initSync() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (typeof __initial_auth_token !== 'undefined' &amp;&amp; __initial_auth_token) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>await signInWithCustomToken(auth, __initial_auth_token);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>await signInAnonymously(auth);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>// Attach real-time Firestore listener</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const targetCollection = collection(db, ...collectionPath);</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>onSnapshot(targetCollection, (snapshot) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>logs = snapshot.docs.map(docSnap =&gt; ({</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>id: docSnap.id,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>...docSnap.data()</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}));</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>// Memory Sort: Descending by created timestamp</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>logs.sort((a, b) =&gt; (b.createdAt || 0) - (a.createdAt || 0));</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>// Current Active Checkout Item</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>currentCheckoutItem = logs.find(item =&gt; item.status === 'CHECKED_OUT') || null;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>render();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}, (error) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>console.error("Firestore sync error:", error);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>showAlert("데이터베이스 동기화 중 오류가 발생했습니다.", "오류", "fa-triangle-exclamation", "bg-rose-50 text-rose-600");</p>
+<p class="p1"><span class="Apple-converted-space">                </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>} catch (err) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>console.error("Authentication failed:", err);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function formatDate(dateObj) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const date = new Date(dateObj);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const yyyy = date.getFullYear();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const mm = String(date.getMonth() + 1).padStart(2, '0');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const dd = String(date.getDate()).padStart(2, '0');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const hh = String(date.getHours()).padStart(2, '0');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const mi = String(date.getMinutes()).padStart(2, '0');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function toDatetimeLocalValue(dateObj) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const date = new Date(dateObj);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const yyyy = date.getFullYear();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const mm = String(date.getMonth() + 1).padStart(2, '0');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const dd = String(date.getDate()).padStart(2, '0');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const hh = String(date.getHours()).padStart(2, '0');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const mi = String(date.getMinutes()).padStart(2, '0');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function escapeHtml(str) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!str) return '';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>return str.replace(/&amp;/g, "&amp;amp;").replace(/&lt;/g, "&amp;lt;").replace(/&gt;/g, "&amp;gt;").replace(/"/g, "&amp;quot;").replace(/'/g, "&amp;#039;");</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renderCardStatus() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const cardStatusContainer = document.getElementById('cardStatusContainer');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!currentCheckoutItem) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>cardStatusContainer.className = "rounded-2xl p-6 transition-all duration-300 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-white border border-emerald-200/80 shadow-sm";</p>
+<p class="p1"><span class="Apple-converted-space">                </span>cardStatusContainer.innerHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex flex-col md:flex-row items-center justify-between gap-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="flex items-center space-x-4 w-full md:w-auto"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/30 flex-shrink-0 pulse-emerald"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;i class="fa-solid fa-box-archive"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div class="flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-500 animate-pulse"&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>대여 가능</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;span class="text-xs text-slate-500"&gt;서랍 보관 중&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;h2 class="text-2xl font-bold text-slate-800 mt-1"&gt;소통복지부 법인카드&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;p class="text-sm text-slate-500 mt-0.5"&gt;카드가 서랍에 있습니다. 필요시 불출을 진행하세요.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="w-full md:w-auto flex flex-col sm:flex-row gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;button id="btnStartCheckout" class="w-full sm:w-auto px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-600/25 transition-all transform active:scale-95 flex items-center justify-center gap-2 text-base"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;i class="fa-solid fa-hand-holding-hand"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;span&gt;카드 불출하기 (대여)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('btnStartCheckout').onclick = openCheckoutModal;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const isOverdue = new Date() &gt; new Date(currentCheckoutItem.expectedReturnTime);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>cardStatusContainer.className = isOverdue<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>? "rounded-2xl p-6 transition-all duration-300 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-white border border-rose-200 shadow-sm"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>: "rounded-2xl p-6 transition-all duration-300 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border border-amber-200 shadow-sm";</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>cardStatusContainer.innerHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="flex flex-col md:flex-row items-center justify-between gap-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="flex items-center space-x-4 w-full md:w-auto"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="w-16 h-16 rounded-2xl ${isOverdue ? 'bg-rose-500 shadow-rose-500/30' : 'bg-amber-500 shadow-amber-500/30'} text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0 ${isOverdue ? '' : 'pulse-amber'}"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;i class="fa-solid fa-credit-card"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div class="flex items-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${isOverdue ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;span class="w-2 h-2 mr-1.5 rounded-full ${isOverdue ? 'bg-rose-500' : 'bg-amber-500'} animate-ping"&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>${isOverdue ? '반납 지연중!' : '현재 대여 사용 중'}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;span class="text-xs text-slate-500"&gt;대출자: &lt;strong class="text-slate-800 font-bold"&gt;${escapeHtml(currentCheckoutItem.borrower)}&lt;/strong&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;h2 class="text-2xl font-bold text-slate-800 mt-1"&gt;${escapeHtml(currentCheckoutItem.borrower)} 님이 사용 중&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;p class="text-sm text-slate-600 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;span&gt;&lt;i class="fa-regular fa-clock text-slate-400 mr-1"&gt;&lt;/i&gt;불출시간: ${currentCheckoutItem.checkoutTime}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;span class="font-bold ${isOverdue ? 'text-rose-600' : 'text-amber-700'}"&gt;&lt;i class="fa-solid fa-flag-checkered mr-1"&gt;&lt;/i&gt;반납 예정: ${currentCheckoutItem.expectedReturnTime}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="w-full md:w-auto flex flex-col sm:flex-row gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;button id="btnStartReturn" class="w-full sm:w-auto px-6 py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold shadow-lg shadow-amber-600/25 transition-all transform active:scale-95 flex items-center justify-center gap-2 text-base"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;i class="fa-solid fa-arrow-down-left-and-up-right-to-center"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;span&gt;카드 반납하기&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('btnStartReturn').onclick = openReturnModal;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renderStats() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const now = new Date();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const thisMonthLogs = logs.filter(item =&gt; item.checkoutTime &amp;&amp; item.checkoutTime.startsWith(currentMonthStr));</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('statTotalCount').textContent = `${thisMonthLogs.length}회`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const statCurrentStateEl = document.getElementById('statCurrentState');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (currentCheckoutItem) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>statCurrentStateEl.textContent = `${currentCheckoutItem.borrower} 사용중`;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>statCurrentStateEl.className = 'text-lg font-bold text-amber-600';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>statCurrentStateEl.textContent = '서랍 보관중';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>statCurrentStateEl.className = 'text-lg font-bold text-emerald-600';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const overdueCount = logs.filter(item =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (item.status === 'CHECKED_OUT' &amp;&amp; item.expectedReturnTime) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>return new Date() &gt; new Date(item.expectedReturnTime);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return false;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}).length;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const statOverdueEl = document.getElementById('statOverdueCount');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>statOverdueEl.textContent = `${overdueCount}건`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>statOverdueEl.className = overdueCount &gt; 0 ? 'text-lg font-bold text-rose-600' : 'text-lg font-bold text-slate-800';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const lastLog = logs[0];</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('statLastUser').textContent = lastLog ? lastLog.borrower : '-';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renderTable() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const query = document.getElementById('searchInput').value.trim().toLowerCase();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const historyTableBody = document.getElementById('historyTableBody');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const emptyState = document.getElementById('emptyState');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const filteredLogs = logs.filter(item =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const borrowerMatch = item.borrower ? item.borrower.toLowerCase().includes(query) : false;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const purposeMatch = item.purpose ? item.purpose.toLowerCase().includes(query) : false;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const notesMatch = item.notes ? item.notes.toLowerCase().includes(query) : false;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return borrowerMatch || purposeMatch || notesMatch;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>historyTableBody.innerHTML = '';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (filteredLogs.length === 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>emptyState.classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>emptyState.classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>filteredLogs.forEach(item =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const tr = document.createElement('tr');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>tr.className = 'hover:bg-slate-50 transition-colors';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>const isCheckedOut = item.status === 'CHECKED_OUT';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const isOverdue = isCheckedOut &amp;&amp; new Date() &gt; new Date(item.expectedReturnTime);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>let statusBadge = '';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (isCheckedOut) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (isOverdue) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>statusBadge = `&lt;span class="px-2.5 py-1 text-xs font-bold bg-rose-100 text-rose-700 rounded-full inline-flex items-center gap-1"&gt;&lt;i class="fa-solid fa-triangle-exclamation text-rose-500"&gt;&lt;/i&gt; 반납지연&lt;/span&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>statusBadge = `&lt;span class="px-2.5 py-1 text-xs font-bold bg-amber-100 text-amber-700 rounded-full inline-flex items-center gap-1"&gt;&lt;i class="fa-solid fa-spinner animate-spin text-amber-500"&gt;&lt;/i&gt; 사용중&lt;/span&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>statusBadge = `&lt;span class="px-2.5 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-full inline-flex items-center gap-1"&gt;&lt;i class="fa-solid fa-check text-emerald-600"&gt;&lt;/i&gt; 반납완료&lt;/span&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>tr.innerHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;td class="px-4 py-3.5 whitespace-nowrap"&gt;${statusBadge}&lt;/td&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;td class="px-4 py-3.5 font-bold text-slate-800 whitespace-nowrap"&gt;${escapeHtml(item.borrower)}&lt;/td&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;td class="px-4 py-3.5 font-mono text-xs text-slate-600 whitespace-nowrap"&gt;${item.checkoutTime || '-'}&lt;/td&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;td class="px-4 py-3.5 font-mono text-xs font-semibold ${isOverdue ? 'text-rose-600' : 'text-slate-700'} whitespace-nowrap"&gt;${item.expectedReturnTime || '-'}&lt;/td&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;td class="px-4 py-3.5 font-mono text-xs text-slate-600 whitespace-nowrap"&gt;${item.actualReturnTime || '-'}&lt;/td&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;td class="px-4 py-3.5 text-xs text-slate-700 max-w-xs truncate" title="${escapeHtml(item.purpose)}"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>${escapeHtml(item.purpose)}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>${item.notes ? `&lt;div class="text-[11px] text-slate-400 mt-0.5"&gt;&lt;i class="fa-solid fa-comment-dots mr-1"&gt;&lt;/i&gt;${escapeHtml(item.notes)}&lt;/div&gt;` : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/td&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;td class="px-4 py-3.5 text-right whitespace-nowrap"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>${isCheckedOut ? `</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;button data-id="${item.id}" class="btnQuickReturn px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-semibold transition"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>반납하기</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>` : `</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;button data-id="${item.id}" class="btnDeleteItem text-slate-300 hover:text-rose-500 transition px-2 py-1" title="삭제"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;i class="fa-regular fa-trash-can"&gt;&lt;/i&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>`}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/td&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>historyTableBody.appendChild(tr);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>// Attach dynamic button events</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.btnQuickReturn').forEach(btn =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>btn.onclick = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const id = btn.getAttribute('data-id');</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const targetItem = logs.find(l =&gt; l.id === id);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (targetItem) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>currentCheckoutItem = targetItem;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>openReturnModal();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>};</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.btnDeleteItem').forEach(btn =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>btn.onclick = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const id = btn.getAttribute('data-id');</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>showConfirm('해당 불출 내역을 삭제하시겠습니까?', '기록 삭제', async () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>await deleteDoc(doc(db, ...collectionPath, id));</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>showAlert('삭제되었습니다.', '완료', 'fa-trash', 'bg-rose-50 text-rose-600');</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>} catch (e) {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>showAlert('삭제 중 오류가 발생했습니다.');</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">                </span>};</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function render() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>renderCardStatus();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>renderStats();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>renderTable();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function openCheckoutModal() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (currentCheckoutItem) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>showAlert('현재 이미 카드가 대여 중입니다. 먼저 반납을 완료해 주세요.');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const now = new Date();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('displayCheckoutTime').value = formatDate(now);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('inputBorrowerName').value = '';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const defaultExpected = new Date(now.getTime() + 2 * 60 * 60 * 1000);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('inputExpectedReturnTime').value = toDatetimeLocalValue(defaultExpected);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('checkoutModal').classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>setTimeout(() =&gt; document.getElementById('inputBorrowerName').focus(), 100);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function closeCheckoutModal() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('checkoutModal').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function openReturnModal() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!currentCheckoutItem) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>showAlert('현재 대여 중인 카드가 없습니다.');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('returnModalBorrowerName').textContent = `${currentCheckoutItem.borrower} 님`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('returnModalTimeInfo').textContent = `불출 일시: ${currentCheckoutItem.checkoutTime}`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('displayReturnTime').value = formatDate(new Date());</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('inputReturnNotes').value = '';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('returnModal').classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function closeReturnModal() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('returnModal').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Checkout Submit Event</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('checkoutForm').addEventListener('submit', async function(e) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>e.preventDefault();</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const name = document.getElementById('inputBorrowerName').value.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!name) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>showAlert('대출자 이름을 입력해주세요.');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const now = new Date();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const expectedVal = document.getElementById('inputExpectedReturnTime').value;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const formattedExpected = expectedVal ? formatDate(new Date(expectedVal)) : formatDate(new Date(now.getTime() + 2 * 60 * 60 * 1000));</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const newItem = {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>borrower: name,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>checkoutTime: formatDate(now),</p>
+<p class="p1"><span class="Apple-converted-space">                </span>expectedReturnTime: formattedExpected,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>actualReturnTime: null,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>purpose: document.getElementById('selectPurpose').value,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>status: 'CHECKED_OUT',</p>
+<p class="p1"><span class="Apple-converted-space">                </span>notes: '',</p>
+<p class="p1"><span class="Apple-converted-space">                </span>createdAt: Date.now()</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>closeCheckoutModal();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>await addDoc(collection(db, ...collectionPath), newItem);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>confetti({</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>particleCount: 50,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>spread: 60,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>origin: { y: 0.7 }</p>
+<p class="p1"><span class="Apple-converted-space">                </span>});</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} catch (err) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>console.error("Add error:", err);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>showAlert('불출 저장에 실패했습니다.');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Return Confirm Event</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('btnConfirmReturn').addEventListener('click', async function() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!currentCheckoutItem) return;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const now = new Date();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const notes = document.getElementById('inputReturnNotes').value.trim();</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>closeReturnModal();</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>const targetRef = doc(db, ...collectionPath, currentCheckoutItem.id);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>await updateDoc(targetRef, {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>actualReturnTime: formatDate(now),</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>status: 'RETURNED',</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>notes: notes || currentCheckoutItem.notes || ''</p>
+<p class="p1"><span class="Apple-converted-space">                </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>confetti({</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>particleCount: 70,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>spread: 80,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>origin: { y: 0.6 }</p>
+<p class="p1"><span class="Apple-converted-space">                </span>});</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} catch (err) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>console.error("Update error:", err);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>showAlert('반납 처리 중 오류가 발생했습니다.');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Quick Presets for Return Time</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.querySelectorAll('.btnPresetTime').forEach(btn =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>btn.addEventListener('click', function() {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const hours = parseInt(this.getAttribute('data-hours') || '1', 10);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const targetTime = new Date(Date.now() + hours * 60 * 60 * 1000);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('inputExpectedReturnTime').value = toDatetimeLocalValue(targetTime);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('btnPresetWorkEnd').addEventListener('click', function() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const target = new Date();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>target.setHours(18, 0, 0, 0);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (target &lt; new Date()) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>target.setDate(target.getDate() + 1);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('inputExpectedReturnTime').value = toDatetimeLocalValue(target);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// QR Code Generator</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('btnOpenQrModal').addEventListener('click', function() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const currentUrl = window.location.href;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('qrUrlText').textContent = currentUrl;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const qrContainer = document.getElementById('qrcode');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>qrContainer.innerHTML = '';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>new QRCode(qrContainer, {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>text: currentUrl,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>width: 180,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>height: 180,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>colorDark : "#1e293b",</p>
+<p class="p1"><span class="Apple-converted-space">                </span>colorLight : "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                </span>correctLevel : QRCode.CorrectLevel.H</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('qrModal').classList.remove('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.querySelector('.btnCloseQrModal').onclick = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('qrModal').classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Print QR Button</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('btnPrintQr').addEventListener('click', function() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const printWindow = window.open('', '_blank');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const currentUrl = window.location.href;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const imgData = document.querySelector('#qrcode img')?.src || '';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>printWindow.document.write(`</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;!DOCTYPE html&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;html&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;title&gt;소통복지부 법인카드 QR코드&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>body { font-family: sans-serif; text-align: center; padding: 40px; }</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>.card-box { border: 3px solid #1e293b; border-radius: 16px; padding: 30px; display: inline-block; max-width: 320px; }</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>h2 { font-size: 22px; color: #1e293b; margin-bottom: 4px; }</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>p { font-size: 13px; color: #64748b; margin-top: 0; }</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>img { margin: 20px 0; border: 1px solid #e2e8f0; padding: 10px; border-radius: 12px; }</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>.footer { font-size: 11px; color: #94a3b8; font-family: monospace; word-break: break-all; }</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;body&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="card-box"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;h2&gt;소통복지부 법인카드&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;p&gt;스캔 시 즉시 불출/반납 페이지 연결&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;img src="${imgData}" width="200" height="200" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="footer"&gt;${currentUrl}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>window.onload = function() { window.print(); }</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;\/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/body&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/html&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>`);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>printWindow.document.close();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Excel Export</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('btnExportCsv').addEventListener('click', function() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (logs.length === 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>showAlert('다운로드할 내역이 없습니다.');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>let csvContent = "\uFEFF"; // UTF-8 BOM</p>
+<p class="p1"><span class="Apple-converted-space">            </span>csvContent += "상태,대출자,불출일시,반납예정시간,실제반납일시,사용목적,비고\n";</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>logs.forEach(item =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const statusStr = item.status === 'CHECKED_OUT' ? '사용중' : '반납완료';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const row = [</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>`"${statusStr}"`,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>`"${item.borrower || ''}"`,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>`"${item.checkoutTime || ''}"`,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>`"${item.expectedReturnTime || ''}"`,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>`"${item.actualReturnTime || ''}"`,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>`"${item.purpose || ''}"`,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>`"${item.notes || ''}"`</p>
+<p class="p1"><span class="Apple-converted-space">                </span>];</p>
+<p class="p1"><span class="Apple-converted-space">                </span>csvContent += row.join(",") + "\n";</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const url = URL.createObjectURL(blob);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const link = document.createElement("a");</p>
+<p class="p1"><span class="Apple-converted-space">            </span>link.setAttribute("href", url);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>link.setAttribute("download", `소통복지부_법인카드_불출대장_${formatDate(new Date()).substring(0,10)}.csv`);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.body.appendChild(link);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>link.click();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.body.removeChild(link);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Search event listener</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('searchInput').addEventListener('input', renderTable);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Close Modal Handlers</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.querySelectorAll('.btnCloseCheckoutModal').forEach(btn =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>btn.onclick = closeCheckoutModal;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.querySelectorAll('.btnCloseReturnModal').forEach(btn =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>btn.onclick = closeReturnModal;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// App Start</p>
+<p class="p1"><span class="Apple-converted-space">        </span>window.onload = function() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>initSync();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>};</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
 </body>
 </html>
