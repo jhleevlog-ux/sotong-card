@@ -12,6 +12,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Firebase (모든 사용자가 함께 보는 공유 데이터베이스) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
@@ -38,6 +41,8 @@
             70% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
         }
+        #syncStatus.offline { color: #e11d48; }
+        #syncStatus.online { color: #059669; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-12">
@@ -53,11 +58,12 @@
                     <div class="flex items-center gap-2">
                         <span class="px-2 py-0.5 text-xs font-semibold bg-blue-500/30 text-blue-100 rounded-full border border-blue-300/30">소통복지부</span>
                         <span class="text-xs text-blue-200"><i class="fa-solid fa-location-dot mr-1"></i>2층 서랍 보관</span>
+                        <span id="syncStatus" class="text-xs font-semibold flex items-center gap-1"><i class="fa-solid fa-circle-notch fa-spin"></i>연결중...</span>
                     </div>
                     <h1 class="text-xl font-bold tracking-tight">법인카드 불출대장</h1>
                 </div>
             </div>
-            
+
             <div class="flex items-center gap-2">
                 <button id="btnOpenQrModal" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition flex items-center gap-1.5 border border-white/20">
                     <i class="fa-solid fa-qrcode text-amber-300"></i>
@@ -84,7 +90,7 @@
                     <p id="statTotalCount" class="text-lg font-bold text-slate-800">0회</p>
                 </div>
             </div>
-            
+
             <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center space-x-3">
                 <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
                     <i class="fa-solid fa-hand-holding-hand"></i>
@@ -262,7 +268,25 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'SOTONG_CARD_LOGS_V2';
+        // =====================================================================
+        // Firebase 설정: Firebase 콘솔(console.firebase.google.com)에서
+        // 프로젝트를 만든 뒤 "프로젝트 설정 > 내 앱 > 웹 앱"에서 나오는 값을
+        // 아래에 그대로 붙여넣으세요. 이 값을 넣어야 모든 사용자가
+        // 같은 데이터를 실시간으로 공유해서 볼 수 있습니다.
+        // =====================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6tFsZBiajD40iPO-urdapOL_Kit0Zr10",
+            authDomain: "sotong-card.firebaseapp.com",
+            projectId: "sotong-card",
+            storageBucket: "sotong-card.firebasestorage.app",
+            messagingSenderId: "443178071694",
+            appId: "1:443178071694:web:8045d5f36b8fd4e97d3bdf"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const logsCollection = db.collection('cardLogs');
+
         let logs = [];
         let currentCheckoutItem = null;
 
@@ -270,6 +294,7 @@
         const historyTableBody = document.getElementById('historyTableBody');
         const emptyState = document.getElementById('emptyState');
         const searchInput = document.getElementById('searchInput');
+        const syncStatus = document.getElementById('syncStatus');
 
         const checkoutModal = document.getElementById('checkoutModal');
         const returnModal = document.getElementById('returnModal');
@@ -301,19 +326,23 @@
             return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
         }
 
+        // 모든 사용자가 함께 보는 공유 데이터베이스(Firestore)를 실시간으로 구독합니다.
+        // 누군가 다른 기기에서 불출/반납을 처리하면 자동으로 화면이 갱신됩니다.
         function loadData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try { logs = JSON.parse(saved); } catch (e) { logs = []; }
-            } else {
-                logs = [];
-            }
-            currentCheckoutItem = logs.find(item => item.status === 'CHECKED_OUT') || null;
-            render();
-        }
-
-        function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+            logsCollection.orderBy('checkoutTime', 'desc').onSnapshot(
+                (snapshot) => {
+                    logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    currentCheckoutItem = logs.find(item => item.status === 'CHECKED_OUT') || null;
+                    syncStatus.className = 'text-xs font-semibold flex items-center gap-1 online';
+                    syncStatus.innerHTML = '<i class="fa-solid fa-circle text-[6px]"></i>실시간 동기화중';
+                    render();
+                },
+                (error) => {
+                    console.error('Firestore 연결 오류:', error);
+                    syncStatus.className = 'text-xs font-semibold flex items-center gap-1 offline';
+                    syncStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>연결 오류';
+                }
+            );
         }
 
         function renderCardStatus() {
@@ -343,7 +372,7 @@
                 document.getElementById('btnStartCheckout').addEventListener('click', openCheckoutModal);
             } else {
                 const isOverdue = new Date() > new Date(currentCheckoutItem.expectedReturnTime);
-                cardStatusContainer.className = isOverdue 
+                cardStatusContainer.className = isOverdue
                     ? "rounded-2xl p-6 transition-all duration-300 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-white border border-rose-200 shadow-sm"
                     : "rounded-2xl p-6 transition-all duration-300 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border border-amber-200 shadow-sm";
 
@@ -397,8 +426,8 @@
 
         function renderTable() {
             const query = searchInput.value.trim().toLowerCase();
-            const filteredLogs = logs.filter(item => 
-                (item.borrower && item.borrower.toLowerCase().includes(query)) || 
+            const filteredLogs = logs.filter(item =>
+                (item.borrower && item.borrower.toLowerCase().includes(query)) ||
                 (item.purpose && item.purpose.toLowerCase().includes(query))
             );
 
@@ -415,7 +444,7 @@
                 const isCheckedOut = item.status === 'CHECKED_OUT';
                 const isOverdue = isCheckedOut && new Date() > new Date(item.expectedReturnTime);
 
-                let statusBadge = isCheckedOut 
+                let statusBadge = isCheckedOut
                     ? (isOverdue ? `<span class="px-2.5 py-1 text-xs font-bold bg-rose-100 text-rose-700 rounded-full">반납지연</span>` : `<span class="px-2.5 py-1 text-xs font-bold bg-amber-100 text-amber-700 rounded-full">사용중</span>`)
                     : `<span class="px-2.5 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-full">반납완료</span>`;
 
@@ -458,8 +487,9 @@
 
         checkoutForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            const submitBtn = checkoutForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
             const newItem = {
-                id: 'log-' + Date.now(),
                 borrower: inputBorrowerName.value.trim(),
                 checkoutTime: formatDate(new Date()),
                 expectedReturnTime: formatDate(new Date(inputExpectedReturnTime.value)),
@@ -468,24 +498,35 @@
                 status: 'CHECKED_OUT',
                 notes: ''
             };
-            logs.unshift(newItem);
-            currentCheckoutItem = newItem;
-            saveData();
-            closeCheckoutModal();
-            render();
-            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+            logsCollection.add(newItem).then(() => {
+                closeCheckoutModal();
+                confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+            }).catch((err) => {
+                console.error('불출 저장 오류:', err);
+                alert('저장 중 오류가 발생했습니다. 인터넷 연결과 Firebase 설정을 확인해주세요.');
+            }).finally(() => {
+                submitBtn.disabled = false;
+            });
         });
 
         document.getElementById('btnConfirmReturn').addEventListener('click', function() {
             if (!currentCheckoutItem) return;
-            currentCheckoutItem.actualReturnTime = formatDate(new Date());
-            currentCheckoutItem.status = 'RETURNED';
-            currentCheckoutItem.notes = document.getElementById('inputReturnNotes').value.trim();
-            currentCheckoutItem = null;
-            saveData();
-            closeReturnModal();
-            render();
-            confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+            const btn = this;
+            btn.disabled = true;
+            const notes = document.getElementById('inputReturnNotes').value.trim();
+            logsCollection.doc(currentCheckoutItem.id).update({
+                actualReturnTime: formatDate(new Date()),
+                status: 'RETURNED',
+                notes: notes
+            }).then(() => {
+                closeReturnModal();
+                confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+            }).catch((err) => {
+                console.error('반납 저장 오류:', err);
+                alert('반납 처리 중 오류가 발생했습니다. 인터넷 연결과 Firebase 설정을 확인해주세요.');
+            }).finally(() => {
+                btn.disabled = false;
+            });
         });
 
         window.quickReturnItem = function(id) {
@@ -498,9 +539,10 @@
 
         window.deleteItem = function(id) {
             if (confirm('삭제하시겠습니까?')) {
-                logs = logs.filter(l => l.id !== id);
-                saveData();
-                render();
+                logsCollection.doc(id).delete().catch((err) => {
+                    console.error('삭제 오류:', err);
+                    alert('삭제 중 오류가 발생했습니다.');
+                });
             }
         };
 
@@ -524,6 +566,25 @@
             document.getElementById('qrcode').innerHTML = '';
             new QRCode(document.getElementById('qrcode'), { text: currentUrl, width: 180, height: 180 });
             qrModal.classList.remove('hidden');
+        });
+
+        document.getElementById('btnExportCsv').addEventListener('click', function() {
+            const header = ['상태', '대출자', '불출일시', '반납예정시간', '실제반납일시', '사용목적', '비고'];
+            const rows = logs.map(item => [
+                item.status === 'CHECKED_OUT' ? '사용중' : '반납완료',
+                item.borrower || '',
+                item.checkoutTime || '',
+                item.expectedReturnTime || '',
+                item.actualReturnTime || '',
+                item.purpose || '',
+                item.notes || ''
+            ]);
+            const csvContent = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `법인카드_불출대장_${formatDate(new Date()).slice(0, 10)}.csv`;
+            link.click();
         });
 
         document.querySelector('.btnCloseQrModal').addEventListener('click', () => qrModal.classList.add('hidden'));
